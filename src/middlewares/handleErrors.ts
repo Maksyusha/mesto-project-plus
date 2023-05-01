@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import { TErrors } from "../types/errors/classes";
 import { ErrorNames } from '../types/errors/error-names'
-import { INVALID_DATA_MESSAGE, SERVER_ERROR_MESSAGE } from "../types/errors/error-messages";
+import { BAD_REQUEST_MESSAGE, SERVER_ERROR_MESSAGE } from "../types/errors/error-messages";
 
 const handleErrors = (
   err: Error | TErrors | mongoose.Error,
@@ -16,8 +16,8 @@ const handleErrors = (
     switch (err.name) {
       case ErrorNames.ValidationError:
       case ErrorNames.CastError: {
-        statusCode = 400;
-        message = INVALID_DATA_MESSAGE;
+        statusCode = 400
+        message = BAD_REQUEST_MESSAGE
       }
     }
   }

@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 import Card from "../models/card";
 import NotFoundError from "../types/errors/classes/not-found-error";
-import { CARD_NOT_FOUND_MESSAGE } from "../types/errors/error-messages";
+import { CARD_NOT_FOUND } from "../types/errors/error-messages";
 
 export const getAllCards = (
   req: Request,
@@ -27,9 +27,9 @@ export const deleteCardById = (
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        throw new NotFoundError(CARD_NOT_FOUND_MESSAGE)
+        throw new NotFoundError(CARD_NOT_FOUND);
       }
-      res.status(200).send({ message: "Пост удалён" })
+      res.status(200).send({ message: "Пост удалён" });
     })
     .catch(next);
 };
@@ -42,7 +42,12 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     },
     { new: true }
   )
-    .then((card) => res.status(200).send(card))
+    .then((card) => {
+      if (!null) {
+        throw new NotFoundError(CARD_NOT_FOUND);
+      }
+      res.status(200).send(card);
+    })
     .catch(next);
 };
 
@@ -54,6 +59,11 @@ export const unLikeCard = (req: Request, res: Response, next: NextFunction) => {
     },
     { new: true }
   )
-    .then((card) => res.status(200).send(card))
+    .then((card) => {
+      if (!null) {
+        throw new NotFoundError(CARD_NOT_FOUND);
+      }
+      res.status(200).send(card);
+    })
     .catch(next);
 };
