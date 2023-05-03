@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import usersRouter from "./routes/users";
-import cardsRouter from './routes/cards'
+import routes from './routes/index'
 import handleErrors from "./middlewares/handleErrors";
+import NotFoundError from "./types/errors/classes/not-found-error";
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -18,9 +18,10 @@ app.use((req, res, next) => {
 
   next();
 });
-app.use("/users", usersRouter);
-app.use('/cards', cardsRouter)
-
+app.use('/', routes)
+app.use('/', (req: Request, res: Response, next: NextFunction) => {
+  next(new NotFoundError('404'))
+})
 app.use(handleErrors)
 
 app.listen(PORT, () => {

@@ -1,35 +1,37 @@
-import { Response, Request, NextFunction } from "express";
-import Card from "../models/card";
-import NotFoundError from "../types/errors/classes/not-found-error";
-import { CARD_NOT_FOUND } from "../types/errors/error-messages";
+import { Response, Request, NextFunction } from 'express';
+import { constants } from 'http2';
+import Card from '../models/card';
+import NotFoundError from '../types/errors/classes/not-found-error';
+import { CARD_NOT_FOUND } from '../types/errors/error-messages';
 
 export const getAllCards = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   Card.find({})
-    .then((cards) => res.status(200).send(cards))
+    .populate(['owner', 'likes'])
+    .then((cards) => res.status(constants.HTTP_STATUS_OK).send(cards))
     .catch(next);
 };
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
   Card.create({ ...req.body, owner: (req as any).user._id })
-    .then((card) => res.status(200).send(card))
+    .then((card) => res.status(constants.HTTP_STATUS_CREATED).send(card))
     .catch(next);
 };
 
 export const deleteCardById = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError(CARD_NOT_FOUND);
       }
-      res.status(200).send({ message: "Пост удалён" });
+      res.status(200).send({ message: 'Пост удалён' });
     })
     .catch(next);
 };
@@ -40,13 +42,12 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     {
       $addToSet: { likes: (req as any).user._id },
     },
-    { new: true }
+    { new: true },
   )
+    .populate(['owner', 'likes'])
+    .orFail(new NotFoundError(CARD_NOT_FOUND))
     .then((card) => {
-      if (!null) {
-        throw new NotFoundError(CARD_NOT_FOUND);
-      }
-      res.status(200).send(card);
+      res.status(constants.HTTP_STATUS_OK).send(card);
     })
     .catch(next);
 };
@@ -57,13 +58,14 @@ export const unLikeCard = (req: Request, res: Response, next: NextFunction) => {
     {
       $pull: { likes: (req as any).user._id },
     },
-    { new: true }
+    { new: true },
   )
+    .populate(['owner', 'likes'])
     .then((card) => {
-      if (!null) {
+      if (!card) {
         throw new NotFoundError(CARD_NOT_FOUND);
       }
-      res.status(200).send(card);
+      res.status(constants.HTTP_STATUS_OK).send(card);
     })
     .catch(next);
 };

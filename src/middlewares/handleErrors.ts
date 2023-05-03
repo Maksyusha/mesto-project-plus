@@ -1,29 +1,37 @@
-import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
-import { TErrors } from "../types/errors/classes";
-import { ErrorNames } from '../types/errors/error-names'
-import { BAD_REQUEST_MESSAGE, SERVER_ERROR_MESSAGE } from "../types/errors/error-messages";
+import { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
+import { constants } from 'http2';
+import { TErrors } from '../types/errors/classes';
+import {
+  BAD_REQUEST_MESSAGE,
+  INVALID_ID_MESSAGE,
+  SERVER_ERROR_MESSAGE,
+} from '../types/errors/error-messages';
 
 const handleErrors = (
   err: Error | TErrors | mongoose.Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  // eslint-disable-next-line
+  next: NextFunction // TODO: otherwise the app will crash
 ) => {
-  let { statusCode = 500, message } = err as TErrors;
+  let { statusCode = 500, message = SERVER_ERROR_MESSAGE } = err as TErrors;
 
-  if (err instanceof mongoose.Error) {
-    switch (err.name) {
-      case ErrorNames.ValidationError:
-      case ErrorNames.CastError: {
-        statusCode = 400
-        message = BAD_REQUEST_MESSAGE
-      }
-    }
-  }
-
-  if (err.name === ErrorNames.Error && statusCode === 500) {
-    message = SERVER_ERROR_MESSAGE;
+  // Решил сделать немного по-другому
+  switch (err.constructor) {
+    case mongoose.Error.ValidationError:
+      statusCode = constants.HTTP_STATUS_BAD_REQUEST;
+      message = BAD_REQUEST_MESSAGE;
+      break;
+    case mongoose.Error.CastError:
+      statusCode = constants.HTTP_STATUS_BAD_REQUEST;
+      message = INVALID_ID_MESSAGE;
+      break;
+    default:
+      break;
+    // Не сделал проверку на DocumentNotFoundError,
+    // потому что вместо orFail используется проверка через if,
+    // по которой не было замечаний, напишите, если стоит переписать
   }
 
   res.status(statusCode).send({ message });
