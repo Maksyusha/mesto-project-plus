@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { constants } from 'http2';
-import { TErrors } from '../types/errors/classes';
+import { TErrors } from '../utils/errors/classes';
 import {
   BAD_REQUEST_MESSAGE,
   INVALID_ID_MESSAGE,
   SERVER_ERROR_MESSAGE,
-} from '../types/errors/error-messages';
+} from '../utils/errors/error-messages';
 
 const handleErrors = (
   err: Error | TErrors | mongoose.Error,
   req: Request,
   res: Response,
-  // eslint-disable-next-line
-  next: NextFunction // TODO: otherwise the app will crash
+  // eslint-disable-next-line no-unused-vars
+  next: NextFunction, // TODO: otherwise the app will crash
 ) => {
   let { statusCode = 500, message = SERVER_ERROR_MESSAGE } = err as TErrors;
 

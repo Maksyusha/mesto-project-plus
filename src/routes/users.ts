@@ -1,18 +1,24 @@
 import { Router } from 'express';
+import { celebrate } from 'celebrate';
 import {
-  createUser,
   getUserById,
   getAllUsers,
   updateProfile,
   updateAvatar,
+  getCurrentUser,
 } from '../controllers/users';
+import {
+  getUserByIdJoi,
+  updateAvatarJoi,
+  updateProfileJoi,
+} from '../utils/validation';
 
 const router = Router();
 
 router.get('/', getAllUsers);
-router.post('/', createUser);
-router.get('/:userId', getUserById);
-router.patch('/me', updateProfile);
-router.patch('/me/avatar', updateAvatar);
+router.get('/me', getCurrentUser);
+router.get('/:userId', celebrate(getUserByIdJoi), getUserById);
+router.patch('/me', celebrate(updateProfileJoi), updateProfile);
+router.patch('/me/avatar', celebrate(updateAvatarJoi), updateAvatar);
 
 export default router;

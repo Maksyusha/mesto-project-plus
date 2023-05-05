@@ -1,8 +1,12 @@
 import { Response, Request, NextFunction } from 'express';
 import { constants } from 'http2';
 import Card from '../models/card';
-import NotFoundError from '../types/errors/classes/not-found-error';
-import { CARD_NOT_FOUND } from '../types/errors/error-messages';
+import NotFoundError from '../utils/errors/classes/not-found-error';
+import {
+  CARD_NOT_FOUND,
+  FORBIDDEN_DELETE_CARD_MESSAGE,
+} from '../utils/errors/error-messages';
+import ForbiddenError from '../utils/errors/classes/forbidden-error';
 
 export const getAllCards = (
   req: Request,
@@ -30,6 +34,9 @@ export const deleteCardById = (
     .then((card) => {
       if (!card) {
         throw new NotFoundError(CARD_NOT_FOUND);
+      }
+      if (card.owner.toString() === (req as any).user._id) {
+        throw new ForbiddenError(FORBIDDEN_DELETE_CARD_MESSAGE);
       }
       res.status(200).send({ message: 'Пост удалён' });
     })

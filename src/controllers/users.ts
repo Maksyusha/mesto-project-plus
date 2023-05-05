@@ -1,8 +1,16 @@
 import { Response, Request, NextFunction } from 'express';
 import { constants } from 'http2';
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import NotFoundError from '../types/errors/classes/not-found-error';
-import { USER_NOT_FOUND } from '../types/errors/error-messages';
+import NotFoundError from '../utils/errors/classes/not-found-error';
+import {
+  BAD_REQUEST_MESSAGE,
+  CONFLICT_EMAIL_MESSAGE,
+  USER_NOT_FOUND,
+} from '../utils/errors/error-messages';
+import BadRequestError from '../utils/errors/classes/bad-request-error';
+import ConflictError from '../utils/errors/classes/conflct-error';
 
 export const getAllUsers = (
   req: Request,
@@ -30,16 +38,30 @@ export const getUserById = (
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const { name, about, avatar } = req.body;
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => {
-      res.status(constants.HTTP_STATUS_CREATED).send(user);
+  bcryptjs
+    .hash(password, 10)
+    .then((hash) => {
+      User.create({
+        password: hash, email, name, about, avatar,
+      })
+        .then((user) => {
+          res.status(constants.HTTP_STATUS_CREATED).send(user);
+        })
+        .catch((err) => {
+          if (err.code === 11000) {
+            next(new ConflictError(CONFLICT_EMAIL_MESSAGE));
+          } else {
+            next(err);
+          }
+        });
     })
-    .catch(next);
+    .catch(() => next(new BadRequestError(BAD_REQUEST_MESSAGE)));
 };
 
-// долго думал как сделать через декоратор, но к сожалению не догнал ;(
 const updateUser = (req: Request, res: Response, next: NextFunction) => {
   User.findByIdAndUpdate((req as any).user._id, req.body, {
     new: true,
@@ -72,4 +94,39 @@ export const updateAvatar = (
   req.body = { avatar: req.body.avatar };
 
   updateUser(req, res, next);
+};
+
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'secret_key', { // доделать на переменную окружения
+        expiresIn: '7d',
+      });
+
+      res
+        .cookie('token', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
+        .end();
+    })
+    .catch(next);
+};
+
+export const getCurrentUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  User.findById((req as any).user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError(USER_NOT_FOUND);
+      }
+      res.status(constants.HTTP_STATUS_OK).send(user);
+    })
+    .catch(next);
 };
