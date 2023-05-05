@@ -17,7 +17,6 @@ const handleErrors = (
 ) => {
   let { statusCode = 500, message = SERVER_ERROR_MESSAGE } = err as TErrors;
 
-  // Решил сделать немного по-другому
   switch (err.constructor) {
     case mongoose.Error.ValidationError:
       statusCode = constants.HTTP_STATUS_BAD_REQUEST;
@@ -29,9 +28,6 @@ const handleErrors = (
       break;
     default:
       break;
-    // Не сделал проверку на DocumentNotFoundError,
-    // потому что вместо orFail используется проверка через if,
-    // по которой не было замечаний, напишите, если стоит переписать
   }
 
   res.status(statusCode).send({ message });

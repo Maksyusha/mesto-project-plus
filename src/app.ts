@@ -10,6 +10,7 @@ import { NOT_FOUND_MESSAGE } from "./utils/errors/error-messages";
 import { createUser, login } from "./controllers/users";
 import { createUserJoi, loginJoi } from "./utils/validation";
 
+require('dotenv').config();
 const { PORT = 3000 } = process.env;
 const app = express();
 

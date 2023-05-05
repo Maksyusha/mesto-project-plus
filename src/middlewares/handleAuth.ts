@@ -14,7 +14,8 @@ const handleAuth = (req: Request, res: Response, next: NextFunction) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, 'secret_key');
+    const { TOKEN_SECRET_KEY = 'secret-key' } = process.env;
+    payload = jwt.verify(token, TOKEN_SECRET_KEY);
   } catch {
     throw new AuthenticationError(INVALID_TOKEN_MESSAGE);
   }
