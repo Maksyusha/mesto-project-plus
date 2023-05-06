@@ -30,27 +30,28 @@ export const deleteCardById = (
   res: Response,
   next: NextFunction,
 ) => {
-  Card.findByIdAndDelete(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError(CARD_NOT_FOUND);
       }
-      if (card.owner.toString() === (req as any).user._id) {
+
+      if (card.owner.toString() !== (req as any).user._id) {
         throw new ForbiddenError(FORBIDDEN_DELETE_CARD_MESSAGE);
       }
+      Card.findByIdAndDelete(req.params.cardId).catch(next);
       res.status(200).send({ message: 'Пост удалён' });
     })
     .catch(next);
 };
 
-export const likeCard = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    {
-      $addToSet: { likes: (req as any).user._id },
-    },
-    { new: true },
-  )
+const updateCard = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  dataToUpdate: {},
+) => {
+  Card.findByIdAndUpdate(req.params.cardId, dataToUpdate, { new: true })
     .populate(['owner', 'likes'])
     .orFail(new NotFoundError(CARD_NOT_FOUND))
     .then((card) => {
@@ -59,20 +60,10 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     .catch(next);
 };
 
+export const likeCard = (req: Request, res: Response, next: NextFunction) => {
+  updateCard(req, res, next, { $addToSet: { likes: (req as any).user._id } });
+};
+
 export const unLikeCard = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    {
-      $pull: { likes: (req as any).user._id },
-    },
-    { new: true },
-  )
-    .populate(['owner', 'likes'])
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError(CARD_NOT_FOUND);
-      }
-      res.status(constants.HTTP_STATUS_OK).send(card);
-    })
-    .catch(next);
+  updateCard(req, res, next, { $pull: { likes: (req as any).user._id } });
 };

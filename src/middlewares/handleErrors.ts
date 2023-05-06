@@ -15,7 +15,7 @@ const handleErrors = (
   // eslint-disable-next-line no-unused-vars
   next: NextFunction, // TODO: otherwise the app will crash
 ) => {
-  let { statusCode = 500, message = SERVER_ERROR_MESSAGE } = err as TErrors;
+  let { statusCode = 500, message } = err as TErrors;
 
   switch (err.constructor) {
     case mongoose.Error.ValidationError:
@@ -28,6 +28,10 @@ const handleErrors = (
       break;
     default:
       break;
+  }
+
+  if (statusCode === 500) {
+    message = SERVER_ERROR_MESSAGE;
   }
 
   res.status(statusCode).send({ message });

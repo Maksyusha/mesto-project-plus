@@ -5,12 +5,11 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import NotFoundError from '../utils/errors/classes/not-found-error';
 import {
-  BAD_REQUEST_MESSAGE,
   CONFLICT_EMAIL_MESSAGE,
   USER_NOT_FOUND,
 } from '../utils/errors/error-messages';
-import BadRequestError from '../utils/errors/classes/bad-request-error';
 import ConflictError from '../utils/errors/classes/conflct-error';
+import { TOKEN_SECRET_KEY } from '../../app.config';
 
 export const getAllUsers = (
   req: Request,
@@ -46,10 +45,17 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
     .hash(password, 10)
     .then((hash) => {
       User.create({
-        password: hash, email, name, about, avatar,
+        password: hash,
+        email,
+        name,
+        about,
+        avatar,
       })
         .then((user) => {
-          res.status(constants.HTTP_STATUS_CREATED).send(user);
+          const userWithoutPassword = user.toObject();
+          // @ts-ignore
+          delete userWithoutPassword.password; // TODO: because the password field is required
+          res.status(constants.HTTP_STATUS_CREATED).send(userWithoutPassword);
         })
         .catch((err) => {
           if (err.code === 11000) {
@@ -59,7 +65,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
           }
         });
     })
-    .catch(() => next(new BadRequestError(BAD_REQUEST_MESSAGE)));
+    .catch(next);
 };
 
 const updateUser = (req: Request, res: Response, next: NextFunction) => {
@@ -101,7 +107,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const { TOKEN_SECRET_KEY = 'secret-key' } = process.env;
       const token = jwt.sign({ _id: user._id }, TOKEN_SECRET_KEY, {
         expiresIn: '7d',
       });

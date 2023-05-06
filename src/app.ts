@@ -9,9 +9,8 @@ import NotFoundError from "./utils/errors/classes/not-found-error";
 import { NOT_FOUND_MESSAGE } from "./utils/errors/error-messages";
 import { createUser, login } from "./controllers/users";
 import { createUserJoi, loginJoi } from "./utils/validation";
+import { PORT } from '../app.config'
 
-require('dotenv').config();
-const { PORT = 3000 } = process.env;
 const app = express();
 
 mongoose.connect("mongodb://0.0.0.0:27017/mestodb");
