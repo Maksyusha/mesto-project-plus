@@ -38,7 +38,11 @@ export const getUserById = (
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const {
-    email, password, name, about, avatar,
+    email,
+    password,
+    name,
+    about,
+    avatar,
   } = req.body;
 
   bcryptjs
