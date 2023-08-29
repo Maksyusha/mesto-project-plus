@@ -40,7 +40,9 @@ export const deleteCardById = (
         throw new ForbiddenError(FORBIDDEN_DELETE_CARD_MESSAGE);
       }
       Card.findByIdAndDelete(req.params.cardId).catch(next);
-      res.status(200).send({ message: 'Пост удалён' });
+    })
+    .then(() => {
+      res.status(constants.HTTP_STATUS_OK).send({ message: 'Пост удалён' });
     })
     .catch(next);
 };
