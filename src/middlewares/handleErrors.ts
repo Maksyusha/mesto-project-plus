@@ -1,36 +1,28 @@
-import { NextFunction, Request, Response } from 'express';
-import mongoose from 'mongoose';
-import { constants } from 'http2';
-import { TErrors } from '../utils/errors/classes';
-import {
-  BAD_REQUEST_MESSAGE,
-  INVALID_ID_MESSAGE,
-  SERVER_ERROR_MESSAGE,
-} from '../utils/errors/error-messages';
+import { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
+import { TErrors } from "../types/errors/classes";
+import { ErrorNames } from '../types/errors/error-names'
+import { BAD_REQUEST_MESSAGE, SERVER_ERROR_MESSAGE } from "../types/errors/error-messages";
 
 const handleErrors = (
   err: Error | TErrors | mongoose.Error,
   req: Request,
   res: Response,
-  // eslint-disable-next-line no-unused-vars
-  next: NextFunction, // TODO: otherwise the app will crash
+  next: NextFunction
 ) => {
   let { statusCode = 500, message } = err as TErrors;
 
-  switch (err.constructor) {
-    case mongoose.Error.ValidationError:
-      statusCode = constants.HTTP_STATUS_BAD_REQUEST;
-      message = BAD_REQUEST_MESSAGE;
-      break;
-    case mongoose.Error.CastError:
-      statusCode = constants.HTTP_STATUS_BAD_REQUEST;
-      message = INVALID_ID_MESSAGE;
-      break;
-    default:
-      break;
+  if (err instanceof mongoose.Error) {
+    switch (err.name) {
+      case ErrorNames.ValidationError:
+      case ErrorNames.CastError: {
+        statusCode = 400
+        message = BAD_REQUEST_MESSAGE
+      }
+    }
   }
 
-  if (statusCode === 500) {
+  if (err.name === ErrorNames.Error && statusCode === 500) {
     message = SERVER_ERROR_MESSAGE;
   }
 
