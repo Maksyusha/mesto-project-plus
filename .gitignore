@@ -16,3 +16,9 @@ node_modules
 
 # Typescript build
 dist
+<<<<<<< HEAD
+=======
+
+# Environment vars
+.env
+>>>>>>> month-13/step-1

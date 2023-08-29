@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+<<<<<<< HEAD
     "target": "es6",                                  
+=======
+    "target": "es6",
+>>>>>>> month-13/step-1
     /* Modules */
     "module": "commonjs",                                /* Specify what module code is generated. */
     "baseUrl": "./src",
@@ -18,7 +22,12 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "include": [
+<<<<<<< HEAD
     "src/**/*.ts"
+=======
+    "src/**/*.ts",
+    "app.config.ts"
+>>>>>>> month-13/step-1
   ],
   "exclude": [
     "node_modules"
